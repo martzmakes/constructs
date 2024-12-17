@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "__mocks__/**",
+    "**/*spec.ts",
+    "jest.setup.ts",
+    "bin/*.ts"
+  ],
+  "compilerOptions": {
+    "declaration": true,
+    "outDir": "dist",
+    "types": ["node"]
+  }
+}
