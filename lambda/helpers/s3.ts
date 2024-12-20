@@ -4,15 +4,20 @@ import { getS3Client } from "../clients/s3";
 
 const s3 = getS3Client();
 
-export const uploadImageToS3AndGetPresignedUrl = async (
-  key: string,
-  buffer: Buffer
-): Promise<string> => {
+export const uploadImageToS3AndGetPresignedUrl = async ({
+  key,
+  buffer,
+  bucket = process.env.BUCKET_NAME,
+}: {
+  key: string;
+  buffer: Buffer;
+  bucket?: string;
+}): Promise<string> => {
   try {
     // Upload the buffer to S3
     await s3.send(
       new PutObjectCommand({
-        Bucket: process.env.CHAT_BUCKET,
+        Bucket: bucket,
         Key: key,
         Body: buffer,
         ContentType: "image/png", // Adjust the content type based on your image format
@@ -23,7 +28,7 @@ export const uploadImageToS3AndGetPresignedUrl = async (
     const url = await getSignedUrl(
       s3,
       new GetObjectCommand({
-        Bucket: process.env.CHAT_BUCKET,
+        Bucket: bucket,
         Key: key,
       }),
       { expiresIn: 3600 } // Presigned URL expiration time in seconds (e.g., 1 hour)

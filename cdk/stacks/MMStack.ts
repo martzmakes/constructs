@@ -8,8 +8,8 @@ export class MMStack extends Stack {
   lambdaBaseFnName: string;
   constructor(scope: Construct, id: string, props: MMStackProps) {
     super(scope, id, props);
-    const account = Stack.of(this).account;
     this.lambdaBaseFnName = `${id}`.split("-")[0].replace("Stack", "");
     this.envName = props.envName;
+    this.eventSource = props.eventSource;
   }
 }

@@ -1,10 +1,11 @@
 import { execSync } from "child_process";
 
-export const props = (props: {
+export const stackProps = (props: {
   baseStackName: string;
+  eventSource: string;
   envName?: string;
 }) => {
-  const { baseStackName: baseName, envName } = props;
+  const { baseStackName: baseName, envName, eventSource } = props;
   const branch =
     process.env.GITHUB_REF_NAME ||
     execSync("git rev-parse --abbrev-ref HEAD").toString().trim();
@@ -13,5 +14,11 @@ export const props = (props: {
   const stackName = `${baseName}-${envName || branch}`;
   const account = process.env.CDK_DEFAULT_ACCOUNT!;
 
-  return { description, stackName, env: { account, region: "us-east-1" }, envName: envName || branch };
+  return {
+    description,
+    stackName,
+    env: { account, region: "us-east-1" },
+    envName: envName || branch,
+    eventSource,
+  };
 };
