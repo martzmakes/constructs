@@ -9,6 +9,7 @@ import { EventDetailTypes } from "../../shared/event-detail-types";
 import { getTracer } from "../clients/tracer";
 import { prepareEventPayload, putEvents } from "../helpers/eb";
 import { PreparedEventPayload } from "../interfaces/PreparedEventPayload";
+import { decodePossiblyLargePayload } from "../helpers/decodePayload";
 
 /*
 Usage:
@@ -94,7 +95,8 @@ export const initQueueHandler = <TInput>({
           if (recordEvent.detail) {
             // eventbridge queue
             const { data } = recordEvent.detail;
-            records.push(data as TInput);
+            const decodedData = await decodePossiblyLargePayload({ payload: data });
+            records.push(decodedData as TInput);
           } else {
             // api queue
             records.push(JSON.parse(record.body) as TInput);

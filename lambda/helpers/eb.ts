@@ -4,7 +4,7 @@ import {
   PutEventsCommand,
 } from "@aws-sdk/client-eventbridge";
 import { EventBridgeEvent } from "aws-lambda";
-import { batchInvoke } from "./batch-invoke";
+import { batchInvoke } from "./batchInvoke";
 import { getEbClient } from "../clients/eb";
 import { PreparedEventPayload } from "../interfaces/PreparedEventPayload";
 

@@ -4,6 +4,7 @@ import { getTracer } from "../clients/tracer";
 import { EventDetailTypes } from "../../shared/event-detail-types";
 import { putEvents, prepareEventPayload } from "../helpers/eb";
 import { PreparedEventPayload } from "../interfaces/PreparedEventPayload";
+import { decodePossiblyLargePayload } from "../helpers/decodePayload";
 
 /*
 Usage:
@@ -81,8 +82,9 @@ export const initEventHandler = <TInput>({
     }
     try {
       const { data } = event.detail;
+      const decodedData = await decodePossiblyLargePayload({ payload: data });
       handlerOutput = await eventHandler({
-        data: data as TInput,
+        data: decodedData as TInput,
         event,
         logStreamUrl,
       });

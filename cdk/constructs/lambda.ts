@@ -64,6 +64,19 @@ export class Lambda extends Construct {
       });
     }
 
+    if (props.dynamos) {
+      Object.entries(props.dynamos).forEach(([key, value]) => {
+        if (value.access === "r") {
+          value.table.grantReadData(fn);
+        } else if (value.access === "w") {
+          value.table.grantWriteData(fn);
+        } else if (value.access === "rw") {
+          value.table.grantReadWriteData(fn);
+        }
+        fn.addEnvironment(key, value.table.tableName);
+      });
+    }
+
     this.fn = fn;
     if (props.eventPattern) {
       this.addEventBridgeTrigger({
