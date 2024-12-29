@@ -5,6 +5,7 @@ import { SqsEventSourceProps } from "aws-cdk-lib/aws-lambda-event-sources";
 import { ITableV2 } from "aws-cdk-lib/aws-dynamodb";
 
 export interface LambdaProps extends NodejsFunctionProps {
+  bedrock?: boolean;
   buckets?: Record<string, { bucket: IBucket; access: "r" | "w" | "rw" }>;
   dynamos?: Record<string, { table: ITableV2; access: "r" | "w" | "rw" }>;
   entry: string;

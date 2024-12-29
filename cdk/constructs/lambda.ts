@@ -12,6 +12,7 @@ import {
 } from "aws-cdk-lib/aws-lambda-event-sources";
 import { SqsQueue, LambdaFunction } from "aws-cdk-lib/aws-events-targets";
 import { Queue } from "aws-cdk-lib/aws-sqs";
+import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
 
 export class Lambda extends Construct {
   fn: NodejsFunction;
@@ -44,6 +45,15 @@ export class Lambda extends Construct {
       logGroup,
       ...props,
     });
+    if (props.bedrock) {
+      fn.addToRolePolicy(
+        new PolicyStatement({
+          effect: Effect.ALLOW,
+          actions: ["bedrock:*"],
+          resources: ["*"],
+        })
+      );
+    }
 
     // All lambdas should have access to publish to the event bus
     const bus = EventBus.fromEventBusName(this, "EventBus", "default");
