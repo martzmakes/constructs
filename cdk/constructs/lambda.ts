@@ -87,6 +87,20 @@ export class Lambda extends Construct {
       });
     }
 
+    if (props.secrets) {
+      Object.entries(props.secrets).forEach(([key, value]) => {
+        if (value.access === "r") {
+          value.secret.grantRead(fn);
+        } else if (value.access === "w") {
+          value.secret.grantWrite(fn);
+        } else if (value.access === "rw") {
+          value.secret.grantRead(fn);
+          value.secret.grantWrite(fn);
+        }
+        fn.addEnvironment(key, value.secret.secretName);
+      });
+    }
+
     this.fn = fn;
     if (props.eventPattern) {
       this.addEventBridgeTrigger({

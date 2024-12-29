@@ -1,16 +1,16 @@
-import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
+import { GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { getSecretsManagerClient } from "../clients/sm";
 
 const secretCache: Record<string, any> = {};
+const sm = getSecretsManagerClient();
 
 export const getSecret = async (
-  client: SecretsManagerClient,
   secretName: string
 ): Promise<Record<string, any>> => {
   if (secretCache[secretName]) {
     return secretCache[secretName];
   }
-  const { SecretString } = await client.send(
+  const { SecretString } = await sm.send(
     new GetSecretValueCommand({
       SecretId: secretName,
     })
@@ -25,7 +25,6 @@ export async function getSecretByName(args: {
 }): Promise<Record<string, any> | string> {
   const { name, asString } = args;
   if (!secretCache[name]) {
-    const sm = getSecretsManagerClient();
     const secret = await sm.send(
       new GetSecretValueCommand({
         SecretId: name,
@@ -47,13 +46,12 @@ export async function getSecretByName(args: {
 };
 
 export const getBase64Secret = async (
-  client: SecretsManagerClient,
   secretName: string
 ): Promise<string> => {
   if (secretCache[secretName]) {
     return secretCache[secretName];
   }
-  const { SecretString, SecretBinary } = await client.send(
+  const { SecretString, SecretBinary } = await sm.send(
     new GetSecretValueCommand({
       SecretId: secretName,
     })

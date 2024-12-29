@@ -3,6 +3,7 @@ import { IBucket } from "aws-cdk-lib/aws-s3";
 import { EventPattern } from 'aws-cdk-lib/aws-events';
 import { SqsEventSourceProps } from "aws-cdk-lib/aws-lambda-event-sources";
 import { ITableV2 } from "aws-cdk-lib/aws-dynamodb";
+import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
 
 export interface LambdaProps extends NodejsFunctionProps {
   bedrock?: boolean;
@@ -12,4 +13,5 @@ export interface LambdaProps extends NodejsFunctionProps {
   eventPattern?: EventPattern;
   name: string;
   queue?: boolean | SqsEventSourceProps;
+  secrets?: Record<string, { secret: ISecret; access: "r" | "w" | "rw" }>;
 }
