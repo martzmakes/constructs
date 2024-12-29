@@ -25,10 +25,7 @@ interface ChangeDataCapture {
 
 export interface DynamoProps {
   changeDataCapture?: boolean | ChangeDataCapture;
-  deletionProtection?: boolean;
   gsiIndexNames?: string[];
-  pointInTimeRecovery?: boolean;
-  tableId?: string;
 }
 
 export class Dynamo extends Construct {
@@ -39,7 +36,6 @@ export class Dynamo extends Construct {
     const {
       changeDataCapture,
       gsiIndexNames = [] as string[],
-      tableId = "Table",
     } = props;
 
     let tableProps: TablePropsV2 = {
@@ -56,7 +52,7 @@ export class Dynamo extends Construct {
       };
     }
 
-    this.table = new TableV2(this, tableId, tableProps);
+    this.table = new TableV2(this, "Table", tableProps);
 
     for (const gsi of gsiIndexNames) {
       const gsiCreateParams: GlobalSecondaryIndexPropsV2 = {
