@@ -68,9 +68,9 @@ export const initQueueHandler = <TInput>({
         string,
         {
           account: string;
-          source: string;
+          eventSource: string;
           detailType: string;
-          sourceFn: string;
+          source: string;
         }
       > = {};
       for (const record of event.Records) {
@@ -79,23 +79,25 @@ export const initQueueHandler = <TInput>({
             string,
             PreparedEventPayload<TInput>
           >;
-          if (recordEvent?.detail?.meta?.fn) {
+          if (recordEvent?.detail) {
             const account = recordEvent.account;
-            const source = recordEvent.detail?.meta?.outgoing?.source;
-            const detailType = `${recordEvent.detail?.meta?.outgoing?.detailType}`;
-            const sourceFn = recordEvent.detail.meta.fn;
-            const composite = `${account}:${source}:${detailType}:${sourceFn}`;
+            const eventSource = recordEvent.source;
+            const detailType = `${recordEvent["detail-type"]}`;
+            const source = recordEvent.detail.meta.fn;
+            const composite = `${account}:${source}:${detailType}:${source}`;
             incomingEvents[composite] = {
               account,
-              source,
+              eventSource,
               detailType,
-              sourceFn,
+              source,
             };
           }
           if (recordEvent.detail) {
             // eventbridge queue
             const { data } = recordEvent.detail;
-            const decodedData = await decodePossiblyLargePayload({ payload: data });
+            const decodedData = await decodePossiblyLargePayload({
+              payload: data,
+            });
             records.push(decodedData as TInput);
           } else {
             // api queue
@@ -113,7 +115,7 @@ export const initQueueHandler = <TInput>({
             prepareEventPayload({
               data: JSON.stringify({
                 ...incomingEvent,
-                targetFn: process.env.AWS_LAMBDA_FUNCTION_NAME!,
+                target: process.env.AWS_LAMBDA_FUNCTION_NAME!,
                 queue: true,
               }),
               type: EventDetailTypes.Arch,

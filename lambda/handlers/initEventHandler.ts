@@ -2,7 +2,7 @@ import { Tracer } from "@aws-lambda-powertools/tracer";
 import { EventBridgeEvent, Context } from "aws-lambda";
 import { getTracer } from "../clients/tracer";
 import { EventDetailTypes } from "../../shared/event-detail-types";
-import { putEvents, prepareEventPayload } from "../helpers/eb";
+import { putEvent } from "../helpers/eb";
 import { PreparedEventPayload } from "../interfaces/PreparedEventPayload";
 import { decodePossiblyLargePayload } from "../helpers/decodePayload";
 
@@ -60,21 +60,17 @@ export const initEventHandler = <TInput>({
     let handlerOutput;
     try {
       if (!disableEventTracking && event.detail?.meta?.fn) {
-        await putEvents({
-          payloads: [
-            prepareEventPayload({
-              data: JSON.stringify({
-                account: event.account,
-                detailType: event.detail?.meta?.outgoing?.detailType,
-                source: event.detail?.meta?.outgoing?.source,
-                sourceFn: event.detail.meta.fn,
-                targetFn: process.env.AWS_LAMBDA_FUNCTION_NAME!,
-                queue: false,
-              }),
-              type: EventDetailTypes.Arch,
-              event,
-            }),
-          ],
+        await putEvent({
+          data: JSON.stringify({
+            account: event.account,
+            detailType: event["detail-type"],
+            eventSource: event.source,
+            source: event.detail.meta.fn,
+            target: process.env.AWS_LAMBDA_FUNCTION_NAME!,
+            queue: false,
+          }),
+          type: EventDetailTypes.Arch,
+          event,
         });
       }
     } catch (e) {

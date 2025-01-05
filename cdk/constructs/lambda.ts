@@ -1,7 +1,7 @@
 import { Duration, RemovalPolicy, Stack } from "aws-cdk-lib";
 import { Architecture, Runtime, Tracing } from "aws-cdk-lib/aws-lambda";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
-import { LambdaProps } from "../interfaces/LambdaProps";
+import { BucketAccessProps, DynamoAccessProps, LambdaProps, SecretAccessProps } from "../interfaces/LambdaProps";
 import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
 import { EventBus, EventPattern, Rule } from "aws-cdk-lib/aws-events";
@@ -13,6 +13,7 @@ import {
 import { SqsQueue, LambdaFunction } from "aws-cdk-lib/aws-events-targets";
 import { Queue } from "aws-cdk-lib/aws-sqs";
 import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
+import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
 
 export class Lambda extends Construct {
   fn: NodejsFunction;
@@ -61,45 +62,10 @@ export class Lambda extends Construct {
 
     fn.addEnvironment("EVENT_SOURCE", stack.eventSource);
     fn.addEnvironment("ENV_NAME", stack.envName);
-    if (props.buckets) {
-      Object.entries(props.buckets).forEach(([key, value]) => {
-        if (value.access === "r") {
-          value.bucket.grantRead(fn);
-        } else if (value.access === "w") {
-          value.bucket.grantWrite(fn);
-        } else if (value.access === "rw") {
-          value.bucket.grantReadWrite(fn);
-        }
-        fn.addEnvironment(key, value.bucket.bucketName);
-      });
-    }
-
-    if (props.dynamos) {
-      Object.entries(props.dynamos).forEach(([key, value]) => {
-        if (value.access === "r") {
-          value.table.grantReadData(fn);
-        } else if (value.access === "w") {
-          value.table.grantWriteData(fn);
-        } else if (value.access === "rw") {
-          value.table.grantReadWriteData(fn);
-        }
-        fn.addEnvironment(key, value.table.tableName);
-      });
-    }
-
-    if (props.secrets) {
-      Object.entries(props.secrets).forEach(([key, value]) => {
-        if (value.access === "r") {
-          value.secret.grantRead(fn);
-        } else if (value.access === "w") {
-          value.secret.grantWrite(fn);
-        } else if (value.access === "rw") {
-          value.secret.grantRead(fn);
-          value.secret.grantWrite(fn);
-        }
-        fn.addEnvironment(key, value.secret.secretName);
-      });
-    }
+    
+    if (props.buckets) this.addBucketAccess(props.buckets);
+    if (props.dynamos) this.addDynamoAccess(props.dynamos);
+    if (props.secrets) this.addSecretAccess(props.secrets);
 
     this.fn = fn;
     if (props.eventPattern) {
@@ -108,6 +74,37 @@ export class Lambda extends Construct {
         queue: props.queue,
       });
     }
+  }
+
+  addBucketAccess(buckets: BucketAccessProps) {
+    Object.entries(buckets).forEach(([key, value]) => {
+      if (value.access === "r") {
+        value.bucket.grantRead(this.fn);
+      } else if (value.access === "w") {
+        value.bucket.grantWrite(this.fn);
+      } else if (value.access === "rw") {
+        value.bucket.grantReadWrite(this.fn);
+      }
+      this.fn.addEnvironment(key, value.bucket.bucketName);
+    });
+  }
+  
+  addDiscordSecret(secret: ISecret) {
+    secret.grantRead(this.fn);
+    this.fn.addEnvironment("DISCORD_SECRET", secret.secretName);
+  }
+
+  addDynamoAccess(tables: DynamoAccessProps) {
+    Object.entries(tables).forEach(([key, value]) => {
+      if (value.access === "r") {
+        value.table.grantReadData(this.fn);
+      } else if (value.access === "w") {
+        value.table.grantWriteData(this.fn);
+      } else if (value.access === "rw") {
+        value.table.grantReadWriteData(this.fn);
+      }
+      this.fn.addEnvironment(key, value.table.tableName);
+    });
   }
 
   addEventBridgeTrigger({
@@ -142,5 +139,19 @@ export class Lambda extends Construct {
         targets: [new LambdaFunction(this.fn)],
       });
     }
+  }
+
+  addSecretAccess(secrets: SecretAccessProps) {
+    Object.entries(secrets).forEach(([key, value]) => {
+      if (value.access === "r") {
+        value.secret.grantRead(this.fn);
+      } else if (value.access === "w") {
+        value.secret.grantWrite(this.fn);
+      } else if (value.access === "rw") {
+        value.secret.grantRead(this.fn);
+        value.secret.grantWrite(this.fn);
+      }
+      this.fn.addEnvironment(key, value.secret.secretName);
+    });
   }
 }

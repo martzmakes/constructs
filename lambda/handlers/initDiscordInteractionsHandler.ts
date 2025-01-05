@@ -2,52 +2,29 @@ import { Tracer } from "@aws-lambda-powertools/tracer";
 import { APIGatewayEvent, Context } from "aws-lambda";
 import { EventDetailTypes } from "../../shared/event-detail-types";
 import { getTracer } from "../clients/tracer";
-import { decodePossiblyLargePayload } from "../helpers/decodePayload";
 import { putEvent } from "../helpers/eb";
+import { verifyDiscordRequest } from "../discord/verifyDiscordRequest";
 import { ApiErrorResponse } from "../interfaces/ApiErrorResponse";
 
-/*
-Usage:
-export interface DummyRequest {
-  message: string;
-}
-export interface DummyResponse {
-  response: string;
-}
-const main: ApiHandler<DummyRequest, DummyResponse> = async ({ body }) => {
-  const { message } = body; // already parsed body!
-  return {
-    statusCode: 200,
-    data: { response: "Response" },
-  };
-}
-
-export const handler = initApiHandler({
-  apiHandler: main,
-});
-*/
-
-export type ApiHandler<TInput, TOutput> = (args: {
+export type DiscordInteractionHandler<TInput, TOutput> = (args: {
   body: TInput;
-  event: APIGatewayEvent; // escape hatch
-  headers: Record<string, string>;
-  method: string;
-  path: string;
-  pathParameters: Record<string, string>;
-  queryStringParameters: Record<string, string>;
+  name?: string;
   logStreamUrl: string;
 }) => Promise<{
   data: TOutput | ApiErrorResponse;
-  headers?: Record<string, string>;
   statusCode?: number; // default to 200
 }>;
-export const initApiHandler = <TInput, TOutput>({
-  apiHandler,
+export const initDiscordInteractionHandler = <TInput, TOutput>({
+  defaultInteractionHandler,
+  slashHandler,
+  buttonHandler,
   disableEventTracking,
   errorOutput,
   tracer = getTracer(),
 }: {
-  apiHandler: ApiHandler<TInput, TOutput>;
+  defaultInteractionHandler: DiscordInteractionHandler<TInput, TOutput>;
+  slashHandler?: DiscordInteractionHandler<TInput, TOutput>;
+  buttonHandler?: DiscordInteractionHandler<TInput, TOutput>;
   disableEventTracking?: boolean;
   errorOutput?: any;
   tracer?: Tracer;
@@ -74,16 +51,17 @@ export const initApiHandler = <TInput, TOutput>({
     let handlerOutput;
     try {
       const body = event.body ? JSON.parse(event.body) : {};
-      const decodedBody = await decodePossiblyLargePayload({ payload: body });
       const headers = (event.headers || {}) as Record<string, string>;
       try {
         if (!disableEventTracking && headers.source) {
           await putEvent({
             data: JSON.stringify({
-              source: headers.source,
+              source: `discord-${body.type === 1 ? "verify" : "interaction-"}${
+                body.type === 1 ? "" : body.data.name
+              }`,
               target: process.env.AWS_LAMBDA_FUNCTION_NAME!,
               queue: false,
-              internalApi: true,
+              internalApi: false,
             }),
             type: EventDetailTypes.Arch,
           });
@@ -91,19 +69,41 @@ export const initApiHandler = <TInput, TOutput>({
       } catch (e) {
         console.warn(e);
       }
-      handlerOutput = await apiHandler({
-        event,
-        body: decodedBody as TInput,
-        headers,
-        method: event.httpMethod,
-        path: event.path,
-        pathParameters: (event.pathParameters || {}) as Record<string, string>,
-        queryStringParameters: (event.queryStringParameters || {}) as Record<
-          string,
-          string
-        >,
-        logStreamUrl,
-      });
+      switch (body.type) {
+        case 1:
+          handlerOutput = await verifyDiscordRequest({ body, headers });
+          break;
+        case 2:
+          if (slashHandler) {
+            const name = body.data.name;
+            handlerOutput = await slashHandler({
+              body: body as TInput,
+              name,
+              logStreamUrl,
+            });
+            if (handlerOutput) {
+              break;
+            }
+          }
+        case 3:
+          if (buttonHandler) {
+            const name = body.data.custom_id;
+            handlerOutput = await buttonHandler({
+              body: body as TInput,
+              name,
+              logStreamUrl,
+            });
+            if (handlerOutput) {
+              break;
+            }
+          }
+        default:
+          handlerOutput = await defaultInteractionHandler({
+            body: body as TInput,
+            logStreamUrl,
+          });
+          break;
+      }
       tracer.addResponseAsMetadata(handlerOutput, process.env._HANDLER);
     } catch (err) {
       console.error(err);
@@ -126,7 +126,6 @@ export const initApiHandler = <TInput, TOutput>({
 
     return {
       body: JSON.stringify(handlerOutput.data),
-      headers: handlerOutput.headers,
       statusCode: handlerOutput.statusCode || 200,
     };
   };
