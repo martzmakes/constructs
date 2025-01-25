@@ -25,7 +25,8 @@ export class Lambda extends Construct {
     const stack = Stack.of(this) as MMStack;
 
     // we're specifying the functionName and pre-creating the loggroup to help with arch sniffing
-    const functionName = `${stack.lambdaBaseFnName}${props.name}`;
+    const name = props.name || props.entry.split("/").pop()?.split(".")[0];
+    const functionName = `${stack.lambdaBaseFnName}${name}`;
     this.name = functionName;
     const logGroup = new LogGroup(this, `${functionName}Logs`, {
       logGroupName: `/aws/lambda/${functionName}`,

@@ -4,7 +4,7 @@
     "type": "git",
     "url": "git@github.com:martzmakes/constructs.git"
   },
-  "version": "0.3.0",
+  "version": "0.4.2",
   "scripts": {
     "build": "npm run clean && echo Using TypeScript && tsc --version && tsc --pretty --project tsconfig-publish.json && npm run copy",
     "copy": "cp -r package.json README.md dist/",
@@ -14,8 +14,24 @@
     "check-types": "tsc --project ./tsconfig.json --noEmit --pretty true",
     "publish:pkg": "npm run clean && npm run build && (cd dist && npm publish --access public --scope=@martzmakes)"
   },
-  "devDependencies": {
+  "bin": {
+    "cdk": "bin/cdk.js"
+  },
+  "peerDependencies": {
     "@aws-lambda-powertools/tracer": "^2.10.0",
+    "@types/aws-lambda": "^8.10.145",
+    "aws-cdk": "^2.173.1",
+    "aws-cdk-lib": "^2.173.1",
+    "aws-xray-sdk-core": "^3.10.1",
+    "constructs": "^10.4.2",
+    "esbuild": "^0.24.0",
+    "fs-extra": "^11.1.1",
+    "prompts": "^2.4.2",
+    "source-map-support": "^0.5.21",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.0"
+  },
+  "devDependencies": {
     "@aws-sdk/client-dynamodb": "^3.716.0",
     "@aws-sdk/client-eventbridge": "^3.682.0",
     "@aws-sdk/client-s3": "^3.682.0",
@@ -23,21 +39,14 @@
     "@aws-sdk/lib-dynamodb": "^3.716.0",
     "@aws-sdk/s3-request-presigner": "^3.682.0",
     "@aws-sdk/util-dynamodb": "^3.716.0",
-    "@types/aws-lambda": "^8.10.145",
+    "@types/fs-extra": "^11.0.4",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.1",
-    "aws-cdk": "^2.173.1",
-    "aws-cdk-lib": "^2.173.1",
-    "aws-xray-sdk-core": "^3.10.1",
-    "constructs": "^10.4.2",
-    "esbuild": "^0.24.0",
+    "@types/prompts": "^2.4.9",
     "jest": "^29.7.0",
     "rimraf": "^6.0.1",
-    "source-map-support": "^0.5.21",
     "ts-jest": "^29.2.5",
-    "ts-node": "^10.9.2",
     "tweetnacl": "^1.0.3",
-    "typedoc": "^0.26.10",
-    "typescript": "~5.6.3"
+    "typedoc": "^0.26.10"
   }
 }

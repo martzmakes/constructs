@@ -32,7 +32,7 @@ export interface LambdaProps extends NodejsFunctionProps {
   dynamos?: DynamoAccessProps;
   entry: string;
   eventPattern?: EventPattern;
-  name: string;
+  name?: string;
   queue?: boolean | SqsEventSourceProps;
   secrets?: SecretAccessProps;
 }

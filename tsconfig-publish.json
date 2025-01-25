@@ -3,8 +3,7 @@
   "exclude": [
     "__mocks__/**",
     "**/*spec.ts",
-    "jest.setup.ts",
-    "bin/*.ts"
+    "jest.setup.ts"
   ],
   "compilerOptions": {
     "declaration": true,

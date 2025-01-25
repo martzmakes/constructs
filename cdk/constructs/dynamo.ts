@@ -23,7 +23,7 @@ interface ChangeDataCapture {
   functionPath?: string;
 }
 
-export interface DynamoProps {
+export interface DynamoProps extends Partial<TablePropsV2> {
   changeDataCapture?: boolean | ChangeDataCapture;
   gsiIndexNames?: string[];
 }
@@ -36,6 +36,7 @@ export class Dynamo extends Construct {
     const {
       changeDataCapture,
       gsiIndexNames = [] as string[],
+      ...dynamoProps
     } = props;
 
     let tableProps: TablePropsV2 = {
@@ -43,6 +44,7 @@ export class Dynamo extends Construct {
       sortKey: { name: "sk", type: AttributeType.STRING },
       removalPolicy: RemovalPolicy.DESTROY,
       timeToLiveAttribute: "ttl",
+      ...dynamoProps,
     };
 
     if (changeDataCapture) {
