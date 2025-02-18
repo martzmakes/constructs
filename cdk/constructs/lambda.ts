@@ -36,7 +36,7 @@ export class Lambda extends Construct {
 
     this.timeout = props.timeout || Duration.minutes(15);
 
-    const fn = new NodejsFunction(this, `${props.name}Fn`, {
+    const fn = new NodejsFunction(this, `${name}Fn`, {
       functionName,
       runtime: Runtime.NODEJS_22_X,
       memorySize: 1024,

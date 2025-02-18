@@ -4,7 +4,7 @@
     "type": "git",
     "url": "git@github.com:martzmakes/constructs.git"
   },
-  "version": "0.4.3",
+  "version": "0.5.1",
   "scripts": {
     "build": "npm run clean && echo Using TypeScript && tsc --version && tsc --pretty --project tsconfig-publish.json && npm run copy",
     "copy": "cp -r package.json README.md dist/",
@@ -15,7 +15,7 @@
     "publish:pkg": "npm run clean && npm run build && (cd dist && npm publish --access public --scope=@martzmakes)"
   },
   "bin": {
-    "cdk": "bin/cdk.js"
+    "cdk-init": "bin/cdk-init.js"
   },
   "peerDependencies": {
     "@aws-lambda-powertools/tracer": "^2.10.0",
@@ -24,7 +24,7 @@
     "aws-cdk-lib": "^2.173.1",
     "aws-xray-sdk-core": "^3.10.1",
     "constructs": "^10.4.2",
-    "esbuild": "^0.24.0",
+    "esbuild": "^0.25.0",
     "fs-extra": "^11.1.1",
     "prompts": "^2.4.2",
     "source-map-support": "^0.5.21",

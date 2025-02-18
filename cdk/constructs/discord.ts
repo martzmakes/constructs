@@ -1,4 +1,4 @@
-import { CfnOutput, CustomResource, RemovalPolicy } from "aws-cdk-lib";
+import { CfnOutput, CustomResource, RemovalPolicy, Stack } from "aws-cdk-lib";
 import {
   RestApi,
   EndpointType,
@@ -18,6 +18,7 @@ import { Construct } from "constructs";
 import { ISecret, Secret } from "aws-cdk-lib/aws-secretsmanager";
 import { Provider } from "aws-cdk-lib/custom-resources";
 import { Lambda } from "./lambda";
+import { MMStack } from "../stacks/MMStack";
 
 export interface DiscordProps {
   domainName: string;
@@ -48,8 +49,10 @@ export class Discord extends Construct {
       validation: CertificateValidation.fromDns(hostedZone),
     });
 
+    const stack = Stack.of(this) as MMStack;
+
     const logs = new LogGroup(this, `/DiscordApiLogs`, {
-      logGroupName: `/DiscordApi`,
+      logGroupName: `/${stack.stackName}/DiscordApi`,
       retention: RetentionDays.ONE_WEEK,
       removalPolicy: RemovalPolicy.DESTROY,
     });
