@@ -45,6 +45,9 @@ export class Lambda extends Construct {
       retryAttempts: 0,
       tracing: Tracing.ACTIVE,
       logGroup,
+      bundling: {
+        externalModules: [],
+      },
       ...props,
     });
     if (props.bedrock) {
