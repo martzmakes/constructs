@@ -4,7 +4,7 @@
     "type": "git",
     "url": "git@github.com:martzmakes/constructs.git"
   },
-  "version": "0.7.0",
+  "version": "0.7.1",
   "scripts": {
     "build": "npm run clean && echo Using TypeScript && tsc --version && tsc --pretty --project tsconfig-publish.json && npm run copy",
     "copy": "cp -r package.json README.md dist/",
